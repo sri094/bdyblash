@@ -1,0 +1,81 @@
+h1 {
+    font-size: 1.1rem;
+    text-align: center;
+    margin: 0;
+       background-color: #03a7bc
+       ;
+    display: flex;
+    justify-content: center;
+    /*align-items: center;*/
+    height: 4vh;  /* Make sure it takes full height of the viewport */
+    margin: 0;
+    font-family: Arial, sans-serif;
+    
+}
+
+/* Style for the highlighted text */
+.highlight {
+    color: #F96E2A;
+}
+
+.navbar {
+    display: flex;
+    justify-content: right;
+    background-color: #042a6b; /* Green background */
+    padding: 5px 0;
+}
+
+/* Style for each navigation button */
+.nav-btn {
+    text-decoration: none;
+    color: #DFF2EB;
+    font-size: 1rem;
+    padding: 10px 20px;
+    margin: 0 5px;
+     /* Dark background for buttons */
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+/* Hover effect for navigation buttons */
+.nav-btn:hover {
+    color: #F96E2A; /* Change to orange color */
+    transform: scale(1.1); /* Slightly enlarge the button */
+}
+
+/* Active state (optional: when a button is clicked or selected) */
+.nav-btn:active {
+    background-color: #FF5722; /* Darker shade of orange */
+}
+
+/* Basic styles for the carousel container */
+.carousel-container {
+    
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    margin: auto;
+}
+
+/* Styles for the carousel */
+.carousel {
+    display: flex;
+    animation: scroll 12s infinite linear; /* Animation to scroll the images */
+}
+
+.carousel img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+/* Keyframes for the scrolling animation */
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}

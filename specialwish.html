@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky Crackers Celebration</title>
+  
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            background-color: rgb(63, 62, 62);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    
+    </script>
+    <canvas id="fireworksCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const fireworks = [];
+        const particlesPool = [];  // Pool of reusable particles
+
+        // Random number generator
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Firework class
+        class Firework {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.exploded = false;
+                this.particles = [];
+                this.color = `hsl(${random(0, 360)}, 100%, 50%)`;
+                this.speed = random(2, 5);
+                this.angle = random(0, Math.PI * 2);
+                this.velocityX = Math.cos(this.angle) * this.speed;
+                this.velocityY = Math.sin(this.angle) * this.speed;
+                this.susTextAlpha = 1;  // Initial opacity for the "SUS" text
+            }
+
+            // Update position of the firework
+            update() {
+                if (!this.exploded) {
+                    // Move the firework upwards
+                    this.x += this.velocityX;
+                    this.y += this.velocityY;
+
+                    // When it reaches a certain height, explode
+                    if (this.y < canvas.height / 2) {
+                        this.explode();
+                    }
+                } else {
+                    // Update particles if exploded
+                    this.particles.forEach(p => p.update());
+
+                    // Fade out the "SUS" text gradually
+                    if (this.susTextAlpha > 0) {
+                        this.susTextAlpha -= 0.01;  // Reduce opacity
+                    }
+                }
+            }
+
+            // Create explosion particles
+            explode() {
+                for (let i = 0; i < 100; i++) {
+                    const particle = getParticle();
+                    particle.init(this.x, this.y, this.color);
+                    this.particles.push(particle);
+                }
+                this.exploded = true;
+            }
+
+            // Draw the firework or explosion particles
+            draw() {
+                if (!this.exploded) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                } else {
+                    this.particles.forEach(p => p.draw());
+                    // Draw the "SUS" text at the explosion center
+                    if (this.susTextAlpha > 0) {
+                        ctx.font = "40px Arial";
+                        ctx.fillStyle = `rgba(255, 255, 255, ${this.susTextAlpha})`;  // White with fading opacity
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText("SUS", this.x, this.y);
+                    }
+                }
+            }
+        }
+
+        // Particle class for exploded particles
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            // Initialize the particle
+            init(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = random(2, 5);
+                this.speed = random(1, 4);
+                this.angle = random(0, Math.PI * 2);
+                this.velocityX = Math.cos(this.angle) * this.speed;
+                this.velocityY = Math.sin(this.angle) * this.speed;
+                this.lifetime = 0;
+                this.maxLifetime = random(20, 60);
+            }
+
+            // Update particle position and lifetime
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+                this.lifetime++;
+                if (this.lifetime > this.maxLifetime) {
+                    this.reset();
+                }
+            }
+
+            // Draw the particle
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            // Reset the particle (reuse it)
+            reset() {
+                this.x = this.y = this.size = this.speed = this.angle = this.velocityX = this.velocityY = this.lifetime = this.maxLifetime = 0;
+            }
+        }
+
+        // Particle Pool: Reuse particles to avoid memory overhead
+        function getParticle() {
+            if (particlesPool.length > 0) {
+                return particlesPool.pop();  // Reuse particle from pool
+            } else {
+                return new Particle();  // Create new if pool is empty
+            }
+        }
+
+        // Recycle particles back into the pool
+        function recycleParticles() {
+            for (let i = 0; i < particlesPool.length; i++) {
+                if (particlesPool[i].lifetime > particlesPool[i].maxLifetime) {
+                    particlesPool[i].reset();
+                }
+            }
+        }
+
+        // Create a new firework
+        function createFirework() {
+            const x = random(0, canvas.width);
+            const y = canvas.height;  // Start from the bottom of the screen
+            fireworks.push(new Firework(x, y));
+        }
+
+        // Draw everything (fireworks and particles)
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update fireworks and draw them
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                fireworks[i].update();
+                fireworks[i].draw();
+
+                // Remove fireworks that have finished exploding and have no particles left
+                if (fireworks[i].exploded && fireworks[i].particles.length === 0 && fireworks[i].susTextAlpha <= 0) {
+                    fireworks.splice(i, 1);
+                }
+            }
+
+            // Recycle dead particles and keep memory usage low
+            recycleParticles();
+
+            requestAnimationFrame(draw);
+        }
+
+        // Start the celebration with random fireworks
+        setInterval(createFirework, 500);  // Create a firework every 500ms
+        draw();
+    </script>
+</body>
+</html>
